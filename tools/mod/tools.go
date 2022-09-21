@@ -28,7 +28,7 @@ import (
 	_ "github.com/google/addlicense"
 	_ "github.com/gordonklaus/ineffassign"
 	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway"
-	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-swagger"
+	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2"
 	_ "github.com/gyuho/gocovmerge"
 	_ "github.com/hexfusion/schwag"
 	_ "github.com/mdempsky/unconvert"
