@@ -15,7 +15,13 @@
 package backend
 
 import (
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
 	"syscall"
+
+	"golang.org/x/sys/unix"
 
 	bolt "go.etcd.io/bbolt"
 )
@@ -29,6 +35,27 @@ import (
 var boltOpenOptions = &bolt.Options{
 	MmapFlags:      syscall.MAP_POPULATE,
 	NoFreelistSync: true,
+	OpenFile: func(path string, flag int, perm os.FileMode) (*os.File, error) {
+		if os.Getenv("ETCD_TMPFS") != "" {
+			return os.OpenFile(path, flag, perm)
+		}
+		tempDir, err := os.MkdirTemp("/mnt", "tmpfs-")
+		if err != nil {
+			fmt.Println("Error creating tmpfs directory:", err)
+			return nil, err
+		}
+		fmt.Println("Temporary directory created:", tempDir)
+		err = unix.Mount("tmpfs", tempDir, "tmpfs", 0, "")
+		if err != nil {
+			fmt.Println("Error mounting tmpfs:", err)
+			return nil, err
+		}
+		fmt.Println("Mounted tmpfs at", tempDir)
+
+		fileName := strings.ReplaceAll(filepath.ToSlash(path), "/", "_")
+		pathNew := filepath.Join(tempDir, fileName)
+		return os.OpenFile(pathNew, flag, perm)
+	},
 }
 
 func (bcfg *BackendConfig) mmapSize() int { return int(bcfg.MmapSize) }
