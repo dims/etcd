@@ -93,17 +93,12 @@ func (ti *treeIndex) keyIndex(keyi *keyIndex) *keyIndex {
 }
 
 func (ti *treeIndex) unsafeVisit(key, end []byte, f func(ki *keyIndex) bool) {
-	keyi, endi := &keyIndex{key: key}, &keyIndex{key: end}
-
-	ti.tree.AscendGreaterOrEqual(keyi, func(item *keyIndex) bool {
-		if len(endi.key) > 0 && !item.Less(endi) {
-			return false
-		}
-		if !f(item) {
-			return false
-		}
-		return true
-	})
+	keyi := &keyIndex{key: key}
+	if len(end) == 0 {
+		ti.tree.AscendGreaterOrEqual(keyi, f)
+		return
+	}
+	ti.tree.AscendRange(keyi, &keyIndex{key: end}, f)
 }
 
 // Revisions returns limited number of revisions from key(included) to end(excluded)
